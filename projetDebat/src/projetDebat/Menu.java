@@ -1,183 +1,112 @@
 package projetDebat;
 
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
-
+import java.util.Map.Entry;
 import java.util.Scanner;
 
+/**
+ * Cette classe represente un menu
+ * 
+ * @author Clyse NZE
+ */
 public class Menu {
-
+	
+	static String fichier;
 	static int choix;
 	static Scanner sc1 = new Scanner(System.in);
 	static Scanner sc2 = new Scanner(System.in);
-	static String argumentNom;
-
+	
 	//map qui correspond au graphe
 	static HashMap<String, ArrayList<String>> map = new HashMap<String, ArrayList<String>>();
-	//map qui correspond � la solution
-	static ArrayList<String> s = new ArrayList<String>();
-
-	static GrapheInitial g = new GrapheInitial(map);
-	static Solution solution = new Solution(s);
-
-
-
-
+	static GrapheInitial graphe = new GrapheInitial(map);
+	
+	//liste qui correspond � la solution
+	static ArrayList<ArrayList<String>> solAdmissible= new ArrayList<ArrayList<String>>();
+	static Solution solution = new Solution(solAdmissible);
+	
+   
 	/**
-	 * Cette m�thode permet d'afficher le premier menu  
+	 * Cette m�thode permet d'afficher le menu principal
 	 */
-	public static void getMenuContradiction() {
-		GrapheInitial.afficherArgContradiction();
-		
-
-		do {
-			System.out.println();
-			System.out.println("----------------------- Voici le premier menu -----------------------");
-			System.out.println();
-			System.out.println("1) Ajouter une contradiction");
-			System.out.println("2) Fin");
-
-			choix = sc1.nextInt();
-
-
-			switch (choix) {
-			case 1: System.out.println("Entre quels arguments voulez-vous ajouter une contradiction ? :");
-					String arg1 = sc1.next();
-					String arg2 = sc1.next();
-					System.out.println();
-		
-					if(map.containsKey(arg1) && map.containsKey(arg2)) {
-						g.ajouterContradictionGraphe(arg1, arg2);
-						System.out.println("La contradiction entre " + arg1 + " et " + arg2 + " a �t� ajout�e.");
-					}
-					else if (!map.containsKey(arg1) && !map.containsKey(arg2)){
-						System.out.println("Ces arguments n'existent pas. ");
-					}
-					else if(!map.containsKey(arg1)) {
-						System.out.println("L'arguments "+ arg1+" n'existe pas. ");
-					}
-					else {
-						System.out.println("L'arguments "+ arg2+" n'existe pas. ");
-					}
-			
-			break;
-			case 2: GrapheInitial.afficherArgContradiction();
-					getMenuSolution();
-					sc1.close();
-			
-			break;
-			default: 
-					System.out.println("Vous devez choisir entre 1 et 2 !");
-			}
-			
-		}while(choix != 2);
-
+	public static void affichageMenu() {
+		System.out.println("----------------------- Voici le menu -----------------------");
+		System.out.println("1) chercher une solution admissible;");
+		System.out.println("2) chercher une solution pr�f�r�e;");
+		System.out.println("3) sauvegarder la solution;");
+		System.out.println("4) fin.");
 	}
-
-
-
+	
 	/**
-	 * Cette m�thode permet d'afficher le deuxi�me menu  
+	 * Cette m�thode permet d'afficher les arguments du graphe recupere et leurs contradictions
 	 */
-	public static void getMenuSolution() {
+	public static void afficherArgContradiction() {
+		System.out.println();
+        System.out.println("Voici vos arguments et les contradictions :");
+        for (Entry<String, ArrayList<String>> entry : map.entrySet()) {
+            String key = entry.getKey();
+            ArrayList<String> value = entry.getValue();
+            System.out.println(key + " : " + value);
+        }
+    }
+	
+	/**
+	 * M�thode qui permet de retourner le menu et d'executer les commandes
+	 */
+	public static void getMenuFichier() {
 		do {
-			System.out.println();
-			System.out.println("----------------------- Voici le second menu -----------------------");
-			System.out.println("1) Ajouter un argument à ma solution");
-			System.out.println("2) Retirer un argument solution");
-			System.out.println("3) Verifier la solution");
-			System.out.println("4) Fin");
-
-			choix = sc2.nextInt();
-
+			affichageMenu();
+			choix = sc1.nextInt();
+			
 			switch(choix) {
-			case 1: System.out.println("Quel est le nom de l'argument que vous voulez ajouter � votre solution ? (exemple : A3 )");
-					argumentNom = sc2.next();
-					if(map.containsKey(argumentNom)) { //Verifie si l'argument est bien dans le graphe
-						if(s.contains(argumentNom)) { //Verifie si il n'a pas d�ja �t� ajout� � la solution
-							System.out.println("L'argument " + argumentNom + " a déjà été ajoutée à votre solution !");
-							solution.afficherSolution();
+			case 1 :
+				solution.afficherSolutionAdm();
+				break;
 		
-						}
-						else {
-							solution.ajouterSolution(argumentNom);
-							solution.afficherSolution();
-							getMenuSolution();
-						}
-					}
-					else {
-						System.out.println("Cet argument n'existe pas");
-						GrapheInitial.afficherArgContradiction();
-					}
+			case 2 :
+				solution.afficherSolutionPrf();
+				break;
+		
+			case 3 :
+				if(solution.getComptAdm() == 0 && solution.getComptPrf() == 0) {
+					System.out.println("Pour sauvegarder une solution, il faut que l�option 1"
+							+ " ou l�option 2 ait \n�t� choisie au moins une fois avant !");
+				}
+				else {
+					System.out.println("Saisissez le chemin de votre fichier pour sauvegarder la solution :");
+					fichier = sc2.next();
+					solution.sauvegarder(fichier);
+				}
+				break;
 			
-			break;
-			case 2: System.out.println("Quel est le nom de l'argument que vous voulez retirer de votre solution ? (exemple : A3 )");
-					argumentNom = sc2.next();
-					if(s.contains(argumentNom)) { //Verifie si l'argument est bien dans la solution
-						solution.retirerSolution(argumentNom);
-						System.out.println("L'argument " + argumentNom + " a été retiré.");
-					}
-					else {
-						System.out.println("L'argument " + argumentNom + " n'était déjà pas dans votre solution !");
-					}
-					solution.afficherSolution();
+			case 4 :
+				System.out.println("Fin du programme");
+				break;
 			
-			break;
-			case 3: if(!solution.grapheAdmissible()) {
-						System.out.println("Cette solution n'est pas admissible !");
-					}
-					else {
-						System.out.println("Cette solution est admissible.");
-					}
-					solution.afficherSolution();
-			
-			break;
-			case 4: System.out.println();
-					System.out.println("============= RESULTAT =============");
-					solution.afficherSolution();
-					if(!solution.grapheAdmissible()) {
-						System.out.println(" Cette solution n'est pas admissible !");
-					}
-					else {
-						System.out.println(" Cette solution est admissible.");
-					}
-					sc2.close();
-				
-			break;
-			default: System.out.println("Vous devez choisir entre 1, 2, 3 ou 4 !");
-			
+			default :
+				System.out.println("Attention votre entr�e n'est pas valide");
 			}
 		
 		}while(choix != 4);
-
+		sc1.close();
+		sc2.close();
 	}
-
-
-	public static void main(String[] args) {
-
-
+	
+	
+	public static void main(String[] args) throws FileNotFoundException{
+		
 		Scanner sc = new Scanner(System.in);
-		int nbrArg;
-
-		System.out.println("Bonjour, combien d'arguments voulez-vous ?");
-		nbrArg = sc.nextInt();
-		System.out.println();
-
-		for(int i = 1; i <= nbrArg; i++) {
-			String nom="A"+i;
-			g.ajouterArgumentGraphe(nom);
-		}
-
-		if(nbrArg < 2) {
-			System.out.println("Vous ne pouvez pas encore ajouter de contradictions, car vous avez moins de deux arguments.");
-			getMenuSolution();
-		}
-		else {
-			getMenuContradiction();
-		}
-
+		
+		System.out.println("Entrez le chemin vers votre fichier :");
+		String fichier = sc.nextLine();
+		graphe.fileManager(fichier);
+		
+		System.out.println(); 
+		
+		getMenuFichier();
+		
 		sc.close();
-
 	}
 
 }
